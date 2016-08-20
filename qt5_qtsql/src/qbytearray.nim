@@ -3,7 +3,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2015 Philip Wernersbach
+# Copyright (c) 2016 Philip Wernersbach
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,6 @@ type
 proc constData*(self: QByteArrayObj): immutablecstring =
     var mutableData: cstring
 
-    {.emit: "mutabledata = (char *)self.constData();".}
+    {.emit: "`mutabledata` = (char *)`self`.constData();".}
 
     return (mutableData: mutableData)
