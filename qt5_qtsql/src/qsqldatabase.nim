@@ -3,7 +3,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2015 Philip Wernersbach
+# Copyright (c) 2016 Philip Wernersbach
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ template qSqlDatabaseProcThatReturnsVoid(name: expr, importcppname: string) =
 
 proc qSqlDatabaseAddDatabase*(typ: cstring): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::addDatabase(@)".}
 proc qSqlDatabaseAddDatabase*(typ: cstring, connectionName: cstring): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::addDatabase(@)".}
+proc qSqlDatabaseRemoveDatabase*(connectionName: cstring) {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::removeDatabase(@)".}
 
 #proc cppNew(other: QSqlDatabase): ptr QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "new QSqlDatabase::QSqlDatabase(@)".}
 #proc cppDelete(self: ptr QSqlDatabaseObj) {.header: QSQLDATABASE_H, importcpp: "delete @".}

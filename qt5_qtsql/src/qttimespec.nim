@@ -1,4 +1,4 @@
-# qt5_qtsql.nim
+# qttimespec.nim
 # Part of nim-qt5_qtsql by Philip Wernersbach <philip.wernersbach@gmail.com>
 #
 # The MIT License (MIT)
@@ -23,26 +23,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import qt5_qtsql/src/immutablecstring
-import qt5_qtsql/src/qbytearray
-import qt5_qtsql/src/qvariant
-import qt5_qtsql/src/qstring
-import qt5_qtsql/src/qtimezone
-import qt5_qtsql/src/qdatetime
-import qt5_qtsql/src/qttimespec
-import qt5_qtsql/src/qsqlerror
-import qt5_qtsql/src/qsqlrecord
-import qt5_qtsql/src/qsqlquery
-import qt5_qtsql/src/qsqldatabase
+const QT_H = "<QtCore/Qt>"
 
-export immutablecstring
-export qbytearray
-export qvariant
-export qstring
-export qtimezone
-export qdatetime
-export qttimespec
-export qsqlerror
-export qsqlrecord
-export qsqlquery
-export qsqldatabase
+type
+    QtTimeSpec* {.final, header: QT_H, importcpp: "Qt::TimeSpec".} = enum
+        QtLocalTime = 0
+        QtUtc = 1
+        QtOffsetFromUtc = 2

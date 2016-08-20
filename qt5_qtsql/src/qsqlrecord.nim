@@ -1,4 +1,4 @@
-# qt5_qtsql.nim
+# qsqlrecord.nim
 # Part of nim-qt5_qtsql by Philip Wernersbach <philip.wernersbach@gmail.com>
 #
 # The MIT License (MIT)
@@ -23,26 +23,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import qt5_qtsql/src/immutablecstring
-import qt5_qtsql/src/qbytearray
-import qt5_qtsql/src/qvariant
-import qt5_qtsql/src/qstring
-import qt5_qtsql/src/qtimezone
-import qt5_qtsql/src/qdatetime
-import qt5_qtsql/src/qttimespec
-import qt5_qtsql/src/qsqlerror
-import qt5_qtsql/src/qsqlrecord
-import qt5_qtsql/src/qsqlquery
-import qt5_qtsql/src/qsqldatabase
+import qstring
+import qvariant
+import qsqlquery
 
-export immutablecstring
-export qbytearray
-export qvariant
-export qstring
-export qtimezone
-export qdatetime
-export qttimespec
-export qsqlerror
-export qsqlrecord
-export qsqlquery
-export qsqldatabase
+const QSQLRECORD_H = "<QtSql/QSqlRecord>"
+
+type
+    QSqlRecordObj* {.final, header: QSQLRECORD_H, importc: "QSqlRecord".} = object
+
+proc record*(query: QSqlQueryObj): QSqlRecordObj {.header: QSQLRECORD_H, importcpp: "record".}
+
+proc count*(record: QSqlRecordObj): cint {.header: QSQLRECORD_H, importcpp: "count".}
+proc fieldName*(record: QSqlRecordObj, index: cint): QStringObj {.header: QSQLRECORD_H, importcpp: "fieldName".}
+proc value*(record: QSqlRecordObj, index: cint): QVariantObj {.header: QSQLRECORD_H, importcpp: "value".}
+proc value*(record: QSqlRecordObj, name: cstring): QVariantObj {.header: QSQLRECORD_H, importcpp: "value".}
+proc isNull*(record: QSqlRecordObj, index: cint): bool {.header: QSQLRECORD_H, importcpp: "isNull".}

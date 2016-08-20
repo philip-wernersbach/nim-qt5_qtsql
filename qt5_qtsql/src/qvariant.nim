@@ -3,7 +3,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2015 Philip Wernersbach
+# Copyright (c) 2016 Philip Wernersbach
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 # SOFTWARE.
 
 import qstring
+import qdatetime
 
 const QVARIANT_H = "<QtCore/QVariant>"
 
@@ -36,6 +37,9 @@ proc internalToQulonglong(x: QVariantObj, ok: ptr bool): qulonglong {.header: QV
 proc internalToQlonglong(x: QVariantObj, ok: ptr bool): qlonglong {.header: QVARIANT_H, importcpp: "toLongLong"}
 
 converter toQStringObj*(x: QVariantObj): QStringObj {.header: QVARIANT_H, importcpp: "toString".}
+converter toQDateTimeObj*(variant: QVariantObj): QDateTimeObj {.header: QVARIANT_H, importcpp: "toDateTime"}
+converter toBool*(variant: QVariantObj): bool {.header: QVARIANT_H, importcpp: "toBool"}
+converter toFloat*(variant: QVariantObj): float64 {.header: QVARIANT_H, importcpp: "toFloat"}
 
 converter toQulonglong*(x: QVariantObj): qulonglong {.raises: [ObjectConversionError]} =
     var ok: bool = false
@@ -56,3 +60,5 @@ converter toQlonglong*(x: QVariantObj): qlonglong {.raises: [ObjectConversionErr
         return data
 
 proc toQVariantObj*[T](x: T): QVariantObj {.header: QVARIANT_H, importcpp: "QVariant::QVariant(@)"}
+
+proc userType*(variant: QVariantObj): cint {.header: QVARIANT_H, importcpp: "userType".}
