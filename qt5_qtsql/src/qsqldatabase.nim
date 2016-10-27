@@ -27,7 +27,7 @@ import qbytearray
 import qstring
 import qsqlerror
 
-const QSQLDATABASE_H = "<QtSql/QSQlDatabase>"
+const QSQLDATABASE_H = "<QtSql/QSqlDatabase>"
 
 type
     QSqlDatabaseObj* {.final, header: QSQLDATABASE_H, importc: "QSqlDatabase".} = object
