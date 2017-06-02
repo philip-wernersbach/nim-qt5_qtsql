@@ -76,6 +76,8 @@ template newQSqlDatabase*(typ: cstring, connectionName: cstring): expr =
 #    self.up.cppDelete()
 #    self.up = nil
 
+proc getQSqlDatabase*(connectionName: cstring, open = true): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::database(@)".}
+
 proc internalOpen(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "open".}
 proc internalOpen(self: QSqlDatabaseObj, user: cstring, password: cstring): bool {.header: QSQLDATABASE_H, importcpp: "open".}
 proc lastError*(self: QSqlDatabaseObj): QSqlErrorObj {.header: QSQLDATABASE_H, importcpp: "lastError".}
