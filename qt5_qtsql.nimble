@@ -1,6 +1,6 @@
 [Package]
 name          = "qt5_qtsql"
-version       = "1.0.2"
+version       = "1.0.3"
 author        = "Philip Wernersbach <philip.wernersbach@gmail.com>"
 description   = "Binding for Qt 5's Qt SQL library. Provides a single API for multiple database engines."
 license       = "MIT"

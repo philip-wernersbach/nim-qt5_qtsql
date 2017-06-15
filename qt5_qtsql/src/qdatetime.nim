@@ -37,14 +37,21 @@ proc newQDateTimeObj*(): QDateTimeObj {.header: QDATETIME_H, importcpp: "QDateTi
 proc setMSecsSinceEpoch*(dateTime: var QDateTimeObj, msecs: qint64) {.header: QDATETIME_H, importcpp: "setMSecsSinceEpoch".}
 proc setTimeSpec*(dateTime: var QDateTimeObj, timeSpec: QtTimeSpec) {.header: QDATETIME_H, importcpp: "setTimeSpec".}
 
-proc newQDateTimeObj*(msecs: qint64): QDateTimeObj =
-    result = newQDateTimeObj()
+# The newQDateTimeObj procs need to be templates to workaround a bug in the Nim compiler.
+# When they are procs, Nim zeros the memory of the "result" variable, which is invalid in
+# C++. (nim-lang/Nim#5140)
+template newQDateTimeObj*(msecs: qint64): QDateTimeObj =
+    var result = newQDateTimeObj()
     result.setMSecsSinceEpoch(msecs)
 
-proc newQDateTimeObj*(msecs: qint64, timeSpec: QtTimeSpec): QDateTimeObj =
-    result = newQDateTimeObj()
+    result
+
+template newQDateTimeObj*(msecs: qint64, timeSpec: QtTimeSpec): QDateTimeObj =
+    var result = newQDateTimeObj()
     result.setTimeSpec(timeSpec)
     result.setMSecsSinceEpoch(msecs)
+
+    result
 
 proc currentQDateTimeUtc*(): QDateTimeObj {.header: QDATETIME_H, importcpp: "QDateTime::currentDateTimeUtc".}
 
