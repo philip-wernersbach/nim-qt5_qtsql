@@ -86,3 +86,6 @@ proc prepare*(self: var QSqlQueryObj, query: cstring): bool {.raises: [QSqlExcep
 proc next*(self: QSqlQueryObj): bool {.header: QSQLQUERY_H, importcpp: "next".}
 proc value*(self: QSqlQueryObj, index: cint): QVariantObj {.header: QSQLQUERY_H, importcpp: "value".}
 proc value*(self: QSqlQueryObj, index: cstring): QVariantObj {.header: QSQLQUERY_H, importcpp: "value".}
+proc isNull*(self: QSqlQueryObj, index: cint): bool {.header: QSQLQUERY_H, importcpp: "isNull".}
+proc isNull*(self: QSqlQueryObj, name: cstring): bool {.header: QSQLQUERY_H, importcpp: "isNull".}
+proc isValid*(self: QSqlQueryObj): bool {.header: QSQLQUERY_H, importcpp: "isValid".}

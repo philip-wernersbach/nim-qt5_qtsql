@@ -34,6 +34,8 @@ type
     QDateTimeObj* {.final, header: QDATETIME_H, importc: "QDateTime".} = object
 
 proc newQDateTimeObj*(): QDateTimeObj {.header: QDATETIME_H, importcpp: "QDateTime".}
+proc isNull*(dateTime: QDateTimeObj): bool {.header: QDATETIME_H, importcpp: "isNull".}
+proc isValid*(dateTime: QDateTimeObj): bool {.header: QDATETIME_H, importcpp: "isValid".}
 proc setMSecsSinceEpoch*(dateTime: var QDateTimeObj, msecs: qint64) {.header: QDATETIME_H, importcpp: "setMSecsSinceEpoch".}
 proc setTimeSpec*(dateTime: var QDateTimeObj, timeSpec: QtTimeSpec) {.header: QDATETIME_H, importcpp: "setTimeSpec".}
 

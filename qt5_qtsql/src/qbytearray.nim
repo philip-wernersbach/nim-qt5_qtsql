@@ -30,6 +30,9 @@ const QBYTEARRAY_H = "<QtCore/QByteArray>"
 type
     QByteArrayObj* {.final, header: QBYTEARRAY_H, importc: "QByteArray".} = object
 
+proc isNull*(self: QByteArrayObj): bool {.header: QBYTEARRAY_H, importcpp: "isNull".}
+proc isEmpty*(self: QByteArrayObj): bool {.header: QBYTEARRAY_H, importcpp: "isEmpty".}
+
 #proc constDataUnsafe(self: QByteArrayObj): cstring {.header: QBYTEARRAY_H, importcpp: "constData".}
 proc constData*(self: QByteArrayObj): immutablecstring =
     var mutableData: cstring

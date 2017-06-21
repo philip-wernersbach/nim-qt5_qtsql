@@ -86,6 +86,8 @@ proc internalTransaction(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, 
 proc internalCommit(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "commit".}
 proc internalRollback(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "rollback"}
 
+proc isValid*(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "isValid".}
+
 template nativeErrorCodeCString*(self: QSqlErrorObj): expr =
     self.nativeErrorCode().toUtf8().constData()
 

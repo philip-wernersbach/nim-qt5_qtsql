@@ -33,6 +33,7 @@ type
 
 proc nativeErrorCode*(self: QSqlErrorObj): QStringObj {.header: QSQLERROR_H, importcpp: "nativeErrorCode".}
 proc text*(self: QSqlErrorObj): QStringObj {.header: QSQLERROR_H, importcpp: "text".}
+proc isValid*(self: QSQLErrorObj): bool {.header: QSQLERROR_H, importcpp: "isValid".}
 
 template newQSqlError*(error: string): expr =
     newException(QSqlException, error)

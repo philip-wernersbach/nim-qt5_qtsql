@@ -39,3 +39,5 @@ proc fieldName*(record: QSqlRecordObj, index: cint): QStringObj {.header: QSQLRE
 proc value*(record: QSqlRecordObj, index: cint): QVariantObj {.header: QSQLRECORD_H, importcpp: "value".}
 proc value*(record: QSqlRecordObj, name: cstring): QVariantObj {.header: QSQLRECORD_H, importcpp: "value".}
 proc isNull*(record: QSqlRecordObj, index: cint): bool {.header: QSQLRECORD_H, importcpp: "isNull".}
+proc isNull*(record: QSqlRecordObj, name: cstring): bool {.header: QSQLRECORD_H, importcpp: "isNull".}
+proc isEmpty*(record: QSqlRecordObj): bool {.header: QSQLRECORD_H, importcpp: "isEmpty".}

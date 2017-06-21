@@ -36,6 +36,9 @@ type
 proc internalToQulonglong(x: QVariantObj, ok: ptr bool): qulonglong {.header: QVARIANT_H, importcpp: "toULongLong"}
 proc internalToQlonglong(x: QVariantObj, ok: ptr bool): qlonglong {.header: QVARIANT_H, importcpp: "toLongLong"}
 
+proc isNull*(variant: QVariantObj): bool {.header: QVARIANT_H, importcpp: "isNull".}
+proc isValid*(variant: QVariantObj): bool {.header: QVARIANT_H, importcpp: "isValid".}
+
 converter toQStringObj*(x: QVariantObj): QStringObj {.header: QVARIANT_H, importcpp: "toString".}
 converter toQDateTimeObj*(variant: QVariantObj): QDateTimeObj {.header: QVARIANT_H, importcpp: "toDateTime"}
 converter toBool*(variant: QVariantObj): bool {.header: QVARIANT_H, importcpp: "toBool"}

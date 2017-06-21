@@ -30,6 +30,13 @@ const QSTRING_H = "<QtCore/QString>"
 type
     QStringObj* {.final, header: QSTRING_H, importc: "QString".} = object
 
+# Qt recommends to always use isEmpty() and avoid isNull().
+#
+# See the "Distinction Between Null and Empty Strings" section of
+# http://doc.qt.io/qt-5/qstring.html
+proc isNull*(self: QStringObj): bool {.header: QSTRING_H, importcpp: "isNull".}
+proc isEmpty*(self: QStringObj): bool {.header: QSTRING_H, importcpp: "isEmpty".}
+
 proc toUtf8*(self: QStringObj): QByteArrayObj {.header: QSTRING_H, importcpp: "toUtf8".}
 proc `==`*(self: QStringObj, other: cstring): bool {.header: QSTRING_H, importcpp: "operator==".}
 proc `==`*(self: QStringObj, other: var QByteArrayObj): bool {.header: QSTRING_H, importcpp: "operator==".}
