@@ -25,6 +25,7 @@
 
 import qstring
 import qdatetime
+import qobjectconversionerror
 
 const QVARIANT_H = "<QtCore/QVariant>"
 
@@ -33,35 +34,90 @@ type
     qlonglong* {.final, importc: "qulonglong"} = clonglong
     QVariantObj* {.final, header: QVARIANT_H, importc: "QVariant".} = object
 
-proc internalToQulonglong(x: QVariantObj, ok: ptr bool): qulonglong {.header: QVARIANT_H, importcpp: "toULongLong"}
-proc internalToQlonglong(x: QVariantObj, ok: ptr bool): qlonglong {.header: QVARIANT_H, importcpp: "toLongLong"}
+proc internalToQulonglong*(x: QVariantObj, ok: ptr bool): qulonglong {.header: QVARIANT_H, importcpp: "toULongLong"}
+proc internalToQlonglong*(x: QVariantObj, ok: ptr bool): qlonglong {.header: QVARIANT_H, importcpp: "toLongLong"}
+proc internalToQStringObj*(x: QVariantObj): QStringObj {.header: QVARIANT_H, importcpp: "toString".}
+proc internalToQDateTimeObj*(variant: QVariantObj): QDateTimeObj {.header: QVARIANT_H, importcpp: "toDateTime"}
+proc internalToBool*(variant: QVariantObj): bool {.header: QVARIANT_H, importcpp: "toBool"}
+proc internalToFloat*(variant: QVariantObj, ok: ptr bool): float64 {.header: QVARIANT_H, importcpp: "toFloat"}
+proc internalToDouble*(variant: QVariantObj, ok: ptr bool): float64 {.header: QVARIANT_H, importcpp: "toDouble"}
+proc internalToQVariantObj*[T](x: T): QVariantObj {.header: QVARIANT_H, importcpp: "QVariant::QVariant(@)"}
 
 proc isNull*(variant: QVariantObj): bool {.header: QVARIANT_H, importcpp: "isNull".}
 proc isValid*(variant: QVariantObj): bool {.header: QVARIANT_H, importcpp: "isValid".}
+proc canConvert*(variant: QVariantObj, typ: typedesc): bool {.header: QVARIANT_H, importcpp: "#.canConvert<'*2>()".}
 
-converter toQStringObj*(x: QVariantObj): QStringObj {.header: QVARIANT_H, importcpp: "toString".}
-converter toQDateTimeObj*(variant: QVariantObj): QDateTimeObj {.header: QVARIANT_H, importcpp: "toDateTime"}
-converter toBool*(variant: QVariantObj): bool {.header: QVARIANT_H, importcpp: "toBool"}
-converter toFloat*(variant: QVariantObj): float64 {.header: QVARIANT_H, importcpp: "toFloat"}
+template toQStringObj*(variant: QVariantObj): QStringObj = #{.raises: [QObjectConversionError]} =
+    if unlikely(variant.canConvert(QStringObj) == false):
+        raise newException(QObjectConversionError, "Failed to convert QVariantObj to QStringObj!")
+    
+    variant.internalToQStringObj
 
-converter toQulonglong*(x: QVariantObj): qulonglong {.raises: [ObjectConversionError]} =
-    var ok: bool = false
-    var data = x.internalToQuLongLong(addr(ok))
+template toQDateTimeObj*(variant: QVariantObj): QDateTimeObj = #{.raises: [QObjectConversionError]} =
+    var result: QDateTimeObj
 
-    if ok != true:
-        raise newException(ObjectConversionError, "Failed to convert QVariantObj to qulonglong!")
+    if unlikely(variant.canConvert(QDateTimeObj) == false):
+        raise newException(QObjectConversionError, "Failed to convert QVariantObj to QDateTimeObj!")
     else:
-        return data
+        result = variant.internalToQDateTimeObj
 
-converter toQlonglong*(x: QVariantObj): qlonglong {.raises: [ObjectConversionError]} =
-    var ok: bool = false
-    var data = x.internalToQLongLong(addr(ok))
+        if unlikely(result.isValid == false):
+            raise newException(QObjectConversionError, "Failed to convert QVariantObj to QDateTimeObj!")
 
-    if ok != true:
-        raise newException(ObjectConversionError, "Failed to convert QVariantObj to qlonglong!")
+    result
+
+converter toBool*(variant: QVariantObj): bool {.raises: [QObjectConversionError]} =
+    if unlikely(variant.canConvert(bool) == false):
+        raise newException(QObjectConversionError, "Failed to convert QVariantObj to bool!")
     else:
-        return data
+        result = variant.internalToBool
 
-proc toQVariantObj*[T](x: T): QVariantObj {.header: QVARIANT_H, importcpp: "QVariant::QVariant(@)"}
+proc toFloat*(variant: QVariantObj): float64 {.raises: [QObjectConversionError]} =
+    if unlikely(variant.canConvert(float64) == false):
+        raise newException(QObjectConversionError, "Failed to convert QVariantObj to float64 via toFloat!")
+    else:
+        var ok: bool = false
+        result = variant.internalToFloat(addr(ok))
+
+        if unlikely(ok == false):
+            raise newException(QObjectConversionError, "Failed to convert QVariantObj to float64 via toFloat!")
+
+proc toDouble*(variant: QVariantObj): float64 {.raises: [QObjectConversionError]} =
+    if unlikely(variant.canConvert(float64) == false):
+        raise newException(QObjectConversionError, "Failed to convert QVariantObj to float64 via toDouble!")
+    else:
+        var ok: bool = false
+        result = variant.internalToDouble(addr(ok))
+
+        if unlikely(ok == false):
+            raise newException(QObjectConversionError, "Failed to convert QVariantObj to float64 via toDouble!")
+
+proc toQulonglong*(variant: QVariantObj): qulonglong {.raises: [QObjectConversionError]} =
+    if unlikely(variant.canConvert(qulonglong) == false):
+        raise newException(QObjectConversionError, "Failed to convert QVariantObj to qulonglong!")
+    else:
+        var ok: bool = false
+        result = variant.internalToQulonglong(addr(ok))
+
+        if unlikely(ok == false):
+            raise newException(QObjectConversionError, "Failed to convert QVariantObj to qulonglong!")
+
+proc toQlonglong*(variant: QVariantObj): qlonglong {.raises: [QObjectConversionError]} =
+    if unlikely(variant.canConvert(qlonglong) == false):
+        raise newException(QObjectConversionError, "Failed to convert QVariantObj to qulonglong!")
+    else:
+        var ok: bool = false
+        result = variant.internalToQlonglong(addr(ok))
+
+        if unlikely(ok == false):
+            raise newException(QObjectConversionError, "Failed to convert QVariantObj to qulonglong!")
+
+template toQVariantObj*[T](x: T): QVariantObj = #{.raises: [QObjectConversionError]} =
+    var result = x.internalToQVariantObj
+
+    if unlikely(result.isValid == false):
+        raise newException(QObjectConversionError, "Failed to convert value to QVariantObj!")
+
+    result
 
 proc userType*(variant: QVariantObj): cint {.header: QVARIANT_H, importcpp: "userType".}

@@ -26,11 +26,15 @@
 import qbytearray
 import qstring
 import qsqlerror
+import qobjectconversionerror
 
 const QSQLDATABASE_H = "<QtSql/QSqlDatabase>"
 
 type
     QSqlDatabaseObj* {.final, header: QSQLDATABASE_H, importc: "QSqlDatabase".} = object
+    InvalidQSqlDatabaseException* = object of SystemError
+
+proc isValid*(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "isValid".}
 
 # uc stands for Unsafe Cast
 template qSqlDatabaseProcWithOneArgThatReturnsVoid(typ: typedesc, name: expr, importcppname: string) =
@@ -39,9 +43,25 @@ template qSqlDatabaseProcWithOneArgThatReturnsVoid(typ: typedesc, name: expr, im
 template qSqlDatabaseProcThatReturnsVoid(name: expr, importcppname: string) =
     proc `name`*(self: QSqlDatabaseObj) {.header: QSQLDATABASE_H, importcpp: importcppname.}
 
-proc qSqlDatabaseAddDatabase*(typ: cstring): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::addDatabase(@)".}
-proc qSqlDatabaseAddDatabase*(typ: cstring, connectionName: cstring): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::addDatabase(@)".}
+proc internalQSqlDatabaseAddDatabase*(typ: cstring): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::addDatabase(@)".}
+proc internalQSqlDatabaseAddDatabase*(typ: cstring, connectionName: cstring): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::addDatabase(@)".}
 proc qSqlDatabaseRemoveDatabase*(connectionName: cstring) {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::removeDatabase(@)".}
+
+template qSqlDatabaseAddDatabase(typ: cstring): QSqlDatabaseObj = #{.raises: [InvalidQSqlDatabaseException].}=
+    var result = typ.internalQSqlDatabaseAddDatabase
+
+    if unlikely(result.isValid == false):
+        raise newException(InvalidQSqlDatabaseException, "QSqlDatabaseObj is invalid!")
+    
+    result
+
+template qSqlDatabaseAddDatabase(typ: cstring, connectionName: cstring): QSqlDatabaseObj = #{.raises: [InvalidQSqlDatabaseException].} =
+    var result = typ.internalQSqlDatabaseAddDatabase(connectionName)
+
+    if unlikely(result.isValid == false):
+        raise newException(InvalidQSqlDatabaseException, "QSqlDatabaseObj is invalid!")
+
+    result
 
 #proc cppNew(other: QSqlDatabase): ptr QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "new QSqlDatabase::QSqlDatabase(@)".}
 #proc cppDelete(self: ptr QSqlDatabaseObj) {.header: QSQLDATABASE_H, importcpp: "delete @".}
@@ -76,7 +96,15 @@ template newQSqlDatabase*(typ: cstring, connectionName: cstring): expr =
 #    self.up.cppDelete()
 #    self.up = nil
 
-proc getQSqlDatabase*(connectionName: cstring, open = true): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::database(@)".}
+proc internalGetQSqlDatabase*(connectionName: cstring, open = true): QSqlDatabaseObj {.header: QSQLDATABASE_H, importcpp: "QSqlDatabase::database(@)".}
+
+template getQSqlDatabase*(connectionName: cstring, open = true): QSqlDatabaseObj = #{.raises: [InvalidQSqlDatabaseException].} =
+    var result = connectionName.internalGetQSqlDatabase(open)
+
+    if unlikely(result.isValid == false):
+        raise newException(InvalidQSqlDatabaseException, "QSqlDatabaseObj is invalid!")
+    
+    result
 
 proc internalOpen(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "open".}
 proc internalOpen(self: QSqlDatabaseObj, user: cstring, password: cstring): bool {.header: QSQLDATABASE_H, importcpp: "open".}
@@ -86,53 +114,41 @@ proc internalTransaction(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, 
 proc internalCommit(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "commit".}
 proc internalRollback(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "rollback"}
 
-proc isValid*(self: QSqlDatabaseObj): bool {.header: QSQLDATABASE_H, importcpp: "isValid".}
-
 template nativeErrorCodeCString*(self: QSqlErrorObj): expr =
     self.nativeErrorCode().toUtf8().constData()
 
 template textCString*(self: QSqlErrorObj): expr =
     self.text().toUtf8().constData()
 
-proc open*(self: var QSqlDatabaseObj): bool {.raises: [QSqlException], discardable.} =
-    let status = self.internalOpen()
+proc open*(self: var QSqlDatabaseObj): bool {.raises: [QSqlException, QObjectConversionError], discardable.} =
+    result = self.internalOpen()
 
-    if status != true:
+    if unlikely(result == false):
         raise newQSqlError(self.lastError())
-    else:
-        return true
 
-proc open*(self: var QSqlDatabaseObj, user: cstring, password: cstring): bool {.raises: [QSqlException], discardable.} =
-    let status = self.internalOpen(user, password)
+proc open*(self: var QSqlDatabaseObj, user: cstring, password: cstring): bool {.raises: [QSqlException, QObjectConversionError], discardable.} =
+    result = self.internalOpen(user, password)
 
-    if status != true:
+    if unlikely(result == false):
         raise newQSqlError(self.lastError())
-    else:
-        return true
 
-proc beginTransaction*(self: var QSqlDatabaseObj): bool {.raises: [QSqlException], discardable.} =
-    let status = self.internalTransaction()
+proc beginTransaction*(self: var QSqlDatabaseObj): bool {.raises: [QSqlException, QObjectConversionError], discardable.} =
+    result = self.internalTransaction()
 
-    if status != true:
+    if unlikely(result == false):
         raise newQSqlError(self.lastError())
-    else:
-        return true
 
-proc commitTransaction*(self: var QSqlDatabaseObj): bool {.raises: [QSqlException], discardable.} =
-    let status = self.internalCommit()
+proc commitTransaction*(self: var QSqlDatabaseObj): bool {.raises: [QSqlException, QObjectConversionError], discardable.} =
+    result = self.internalCommit()
 
-    if status != true:
+    if unlikely(result == false):
         raise newQSqlError(self.lastError())
-    else:
-        return true
 
-proc rollback*(self: var QSqlDatabaseObj): bool {.raises: [QSqlException], discardable.} =
-    let status = self.internalRollback()
+proc rollback*(self: var QSqlDatabaseObj): bool {.raises: [QSqlException, QObjectConversionError], discardable.} =
+    result = self.internalRollback()
 
-    if status != true:
+    if unlikely(result == false):
         raise newQSqlError(self.lastError())
-    else:
-        return true
 
 qSqlDatabaseProcWithOneArgThatReturnsVoid(cstring, setHostName, "setHostName")
 qSqlDatabaseProcWithOneArgThatReturnsVoid(cint, setPort, "setPort")

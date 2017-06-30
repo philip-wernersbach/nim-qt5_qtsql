@@ -32,12 +32,51 @@ const QSQLRECORD_H = "<QtSql/QSqlRecord>"
 type
     QSqlRecordObj* {.final, header: QSQLRECORD_H, importc: "QSqlRecord".} = object
 
-proc record*(query: QSqlQueryObj): QSqlRecordObj {.header: QSQLRECORD_H, importcpp: "record".}
+proc internalRecord*(query: QSqlQueryObj): QSqlRecordObj {.header: QSQLRECORD_H, importcpp: "record".}
+proc internalFieldName*(record: QSqlRecordObj, index: cint): QStringObj {.header: QSQLRECORD_H, importcpp: "fieldName".}
+proc internalValue*(record: QSqlRecordObj, index: cint): QVariantObj {.header: QSQLRECORD_H, importcpp: "value".}
+proc internalValue*(record: QSqlRecordObj, name: cstring): QVariantObj {.header: QSQLRECORD_H, importcpp: "value".}
+
+template record*(query: QSqlQueryObj): QSqlRecordObj = #{.raises: [FieldError].} =
+    if unlikely((query.isValid == false) or (query.isActive == false)):
+        raise newException(FieldError, "Failed to create QSqlRecordObj from current QSqlQueryObj state!")
+    
+    query.internalRecord
 
 proc count*(record: QSqlRecordObj): cint {.header: QSQLRECORD_H, importcpp: "count".}
-proc fieldName*(record: QSqlRecordObj, index: cint): QStringObj {.header: QSQLRECORD_H, importcpp: "fieldName".}
-proc value*(record: QSqlRecordObj, index: cint): QVariantObj {.header: QSQLRECORD_H, importcpp: "value".}
-proc value*(record: QSqlRecordObj, name: cstring): QVariantObj {.header: QSQLRECORD_H, importcpp: "value".}
+
+when compileOption("boundChecks"):
+    template fieldName*(record: QSqlRecordObj, index: cint): QStringObj = #{.raises: [IndexError].} =
+        if unlikely(record.count <= index):
+            raise newException(IndexError, "Name for field " & $(index + 1) & " requested from record, but record only has " & $(record.count) & " fields!")
+        
+        record.internalFieldName(index)
+
+    template value*(record: QSqlRecordObj, index: cint): QVariantObj = #{.raises: [IndexError].} =
+        var result = record.internalValue(index)
+
+        if unlikely(result.isValid == false):
+            raise newException(IndexError, "Field " & $(index + 1) & " requested from record, but record only has " & $(record.count) & " fields!")
+
+        result
+
+    template value*(record: QSqlRecordObj, name: cstring): QVariantObj = #{.raises: [IndexError].} =
+        var result = record.internalValue(name)
+
+        if unlikely(result.isValid == false):
+            raise newException(IndexError, "Field with name \"" & $name & "\" requested from record, but no such field exists!")
+
+        result
+else:
+    template fieldName*(record: QSqlRecordObj, index: cint): QStringObj =
+        record.internalFieldName(index)
+
+    template value*(record: QSqlRecordObj, index: cint): QVariantObj =
+        record.internalValue(index)
+
+    template value*(record: QSqlRecordObj, name: cstring): QVariantObj =
+        record.internalValue(name)
+
 proc isNull*(record: QSqlRecordObj, index: cint): bool {.header: QSQLRECORD_H, importcpp: "isNull".}
 proc isNull*(record: QSqlRecordObj, name: cstring): bool {.header: QSQLRECORD_H, importcpp: "isNull".}
 proc isEmpty*(record: QSqlRecordObj): bool {.header: QSQLRECORD_H, importcpp: "isEmpty".}

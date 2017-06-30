@@ -24,11 +24,14 @@
 # SOFTWARE.
 
 import qbytearray
+import qobjectconversionerror
 
 const QSTRING_H = "<QtCore/QString>"
 
 type
     QStringObj* {.final, header: QSTRING_H, importc: "QString".} = object
+
+proc internalToUtf8*(self: QStringObj): QByteArrayObj {.header: QSTRING_H, importcpp: "toUtf8".}
 
 # Qt recommends to always use isEmpty() and avoid isNull().
 #
@@ -37,7 +40,14 @@ type
 proc isNull*(self: QStringObj): bool {.header: QSTRING_H, importcpp: "isNull".}
 proc isEmpty*(self: QStringObj): bool {.header: QSTRING_H, importcpp: "isEmpty".}
 
-proc toUtf8*(self: QStringObj): QByteArrayObj {.header: QSTRING_H, importcpp: "toUtf8".}
+template toUtf8*(self: QStringObj): QByteArrayObj = #{.raises: [QObjectConversionError].} =
+    var result = self.internalToUtf8
+
+    if unlikely(result.isNull == true):
+        raise newException(QObjectConversionError, "Failed to convert QStringObj to UTF-8 QByteArrayObj!")
+
+    result
+
 proc `==`*(self: QStringObj, other: cstring): bool {.header: QSTRING_H, importcpp: "operator==".}
 proc `==`*(self: QStringObj, other: var QByteArrayObj): bool {.header: QSTRING_H, importcpp: "operator==".}
 

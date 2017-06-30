@@ -24,6 +24,7 @@
 # SOFTWARE.
 
 import immutablecstring
+import qobjectconversionerror
 
 const QBYTEARRAY_H = "<QtCore/QByteArray>"
 
@@ -34,8 +35,11 @@ proc isNull*(self: QByteArrayObj): bool {.header: QBYTEARRAY_H, importcpp: "isNu
 proc isEmpty*(self: QByteArrayObj): bool {.header: QBYTEARRAY_H, importcpp: "isEmpty".}
 
 #proc constDataUnsafe(self: QByteArrayObj): cstring {.header: QBYTEARRAY_H, importcpp: "constData".}
-proc constData*(self: QByteArrayObj): immutablecstring =
+proc constData*(self: QByteArrayObj): immutablecstring {.raises: [QObjectConversionError].} =
     var mutableData: cstring
+
+    if unlikely(self.isNull == true):
+        raise newException(QObjectConversionError, "Failed to convert QByteArrayObj to immutablecstring, QByteArrayObj is null!")
 
     {.emit: "`mutabledata` = (char *)`self`.constData();".}
 

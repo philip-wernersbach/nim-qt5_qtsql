@@ -34,6 +34,7 @@ import qt5_qtsql/src/qsqlerror
 import qt5_qtsql/src/qsqlrecord
 import qt5_qtsql/src/qsqlquery
 import qt5_qtsql/src/qsqldatabase
+import qt5_qtsql/src/qobjectconversionerror
 
 export immutablecstring
 export qbytearray
@@ -46,3 +47,4 @@ export qsqlerror
 export qsqlrecord
 export qsqlquery
 export qsqldatabase
+export qobjectconversionerror

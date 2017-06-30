@@ -26,6 +26,7 @@
 import qstring
 import qtimezone
 import qttimespec
+import qobjectconversionerror
 
 const QDATETIME_H = "<QtCore/QDateTime>"
 
@@ -57,8 +58,22 @@ template newQDateTimeObj*(msecs: qint64, timeSpec: QtTimeSpec): QDateTimeObj =
 
 proc currentQDateTimeUtc*(): QDateTimeObj {.header: QDATETIME_H, importcpp: "QDateTime::currentDateTimeUtc".}
 
-proc toQStringObj*(dateTime: QDateTimeObj, format: cstring): QStringObj {.header: QDATETIME_H, importcpp: "toString".}
-proc toMSecsSinceEpoch*(dateTime: QDateTimeObj): qint64 {.header: QDATETIME_H, importcpp: "toMSecsSinceEpoch".}
+proc internalToQStringObj*(dateTime: QDateTimeObj, format: cstring): QStringObj {.header: QDATETIME_H, importcpp: "toString".}
+proc internalToMSecsSinceEpoch*(dateTime: QDateTimeObj): qint64 {.header: QDATETIME_H, importcpp: "toMSecsSinceEpoch".}
+
+template toQStringObj*(dateTime: QDateTimeObj, format: cstring): QStringObj = #{.raises: [QObjectConversionError].} =
+    var result = dateTime.internalToQStringObj(format)
+
+    if unlikely(result.isEmpty == true):
+        raise newException(QObjectConversionError, "Failed to convert QDateTimeObj to QStringObj!")
+
+    result
+
+proc toMSecsSinceEpoch*(dateTime: QDateTimeObj): qint64 {.raises: [QObjectConversionError].} =
+    if unlikely(dateTime.isValid == false):
+        raise newException(QObjectConversionError, "Failed to convert QDateTimeObj to qint64!")
+    else:
+        result = dateTime.internalToMSecsSinceEpoch
 
 proc setTimeZone*(dateTime: QDateTimeObj, toZone: QTimeZoneObj) {.header: QDATETIME_H, importcpp: "setTimeZone".}
 proc addMSecs*(a: var QDateTimeObj, b: qint64): QDateTimeObj {.header: QDATETIME_H, importcpp: "addMSecs".}

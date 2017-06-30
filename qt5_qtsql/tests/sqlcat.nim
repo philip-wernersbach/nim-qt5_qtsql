@@ -71,43 +71,47 @@ proc insertLine(database: var QSqlDatabaseObj, line: string) =
     insertQuery.bindValue(1, line)
     insertQuery.exec()
 
-try:
-    var database = newQSqlDatabase(DATABASE_DRIVER, CONNECTION_NAME_PREFIX & "0")
-    database.setDatabaseName(DATABASE_NAME)
-    database.open()
+proc sqlcat(): int =
+    try:
+        var database = newQSqlDatabase(DATABASE_DRIVER, CONNECTION_NAME_PREFIX & "0")
+        database.setDatabaseName(DATABASE_NAME)
+        database.open()
 
-    var dropQuery = database.qSqlQuery()
-    dropQuery.prepare(DROP_QUERY)
-    dropQuery.exec()
+        var dropQuery = database.qSqlQuery()
+        dropQuery.prepare(DROP_QUERY)
+        dropQuery.exec()
 
-    var createQuery = database.qSqlQuery()
-    createQuery.prepare(CREATE_QUERY)
-    createQuery.exec()
+        var createQuery = database.qSqlQuery()
+        createQuery.prepare(CREATE_QUERY)
+        createQuery.exec()
 
-    for line in stdin.lines:
-        database.insertLine(line)
+        for line in stdin.lines:
+            database.insertLine(line)
 
-        database.selectLines(line.hash(), proc(lines: QSqlQueryObj): bool =
-            while lines.next() == true:
-                var dbLine = lines.value(0)
+            database.selectLines(line.hash(), proc(lines: QSqlQueryObj): bool =
+                while lines.next() == true:
+                    var dbLine = lines.value(0)
 
-                # Qt's way to convert a QVariant to a char * is kind of hard, we should probably
-                # provide a convience function for this.
-                let dbLineString = dbLine.toQStringObj().toUtf8().constData().umc()
-                echo dbLineString
+                    # Qt's way to convert a QVariant to a char * is kind of hard, we should probably
+                    # provide a convience function for this.
+                    let dbLineString = dbLine.toQStringObj().toUtf8().constData().umc()
+                    echo dbLineString
 
-            return true
-        )
+                return true
+            )
 
-except QSqlException:
-    let e = getCurrentException()
-    stderr.write(e.getStackTrace())
-    stderr.write("Error: unhandled exception: ")
-    stderr.writeln(getCurrentExceptionMsg())
+        result = QuitSuccess
+    except QSqlException, QObjectConversionError:
+        let e = getCurrentException()
+        stderr.write(e.getStackTrace())
+        stderr.write("Error: unhandled exception: ")
+        stderr.writeln(getCurrentExceptionMsg())
 
-    stderr.writeln("")
-    quit(QuitFailure)
+        stderr.writeln("")
 
-quit(QuitSuccess)
+        result = QuitFailure
+
+var returnValue = sqlcat()
+quit(returnValue)
 
 # Database connection closes automatically when it goes out of scope.
