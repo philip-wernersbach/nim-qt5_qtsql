@@ -35,6 +35,8 @@ const QSQLQUERY_H = "<QtSql/QSqlQuery>"
 type
     QSqlQueryObj* {.final, header: QSQLQUERY_H, importc: "QSqlQuery".} = object
 
+    WrongQSqlQueryStateError* = object of ValueError
+
 proc qSqlQuery*(db: var QSqlDatabaseObj): QSqlQueryObj {.header: QSQLQUERY_H, importcpp: "QSqlQuery::QSqlQuery(@)".}
 proc qSqlQuery*(query: cstring, db: var QSqlDatabaseObj): QSqlQueryObj {.header: QSQLQUERY_H, importcpp: "QSqlQuery::QSqlQuery(@)"}
 
@@ -108,3 +110,23 @@ proc isNull*(self: QSqlQueryObj, index: cint): bool {.header: QSQLQUERY_H, impor
 proc isNull*(self: QSqlQueryObj, name: cstring): bool {.header: QSQLQUERY_H, importcpp: "isNull".}
 proc isValid*(self: QSqlQueryObj): bool {.header: QSQLQUERY_H, importcpp: "isValid".}
 proc isActive*(self: QSqlQueryObj): bool {.header: QSQLQUERY_H, importcpp: "isActive".}
+proc isSelect*(self: QSqlQueryObj): bool {.header: QSQLQUERY_H, importcpp: "isSelect".}
+
+proc internalNumRowsAffected*(self: QSqlQueryObj): cint {.header: QSQLQUERY_H, importcpp: "numRowsAffected".}
+proc internalSize*(self: QSqlQueryObj): cint {.header: QSQLQUERY_H, importcpp: "size".}
+
+proc numRowsAffected*(self: QSqlQueryObj): cint {.raises: [ValueError].} =
+    when compileOption("objChecks"):
+        if unlikely(self.isSelect == true):
+            raise newException(WrongQSqlQueryStateError, "numRowsAffected() does not work for SELECT statements, use size() instead!")
+
+    result = self.internalNumRowsAffected
+
+    if unlikely(result < 0):
+        raise newException(ValueError, "Failed to determine the numbers of rows affected!")
+
+proc size*(self: QSqlQueryObj): cint {.raises: [ValueError].} =
+    result = self.internalSize
+
+    if unlikely(result < 0):
+        raise newException(ValueError, "Failed to determine the QSqlQuery size!")
